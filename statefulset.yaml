@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cjtest
+spec:
+  serviceName: "cjtest"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cjtest
+  template:
+    metadata:
+      labels:
+        app: cjtest
+    spec:
+      containers:
+        - name: cjtest
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args:
+            - while true; do
+                echo "$(hostname) -  $(ifconfig | egrep 'inet addr:' |  awk '{print $2}' | head -1) - $(date)" >> /mnt/data/output.txt;
+                sleep 10;
+              done;
+          volumeMounts:
+            - name: cjtest-storage
+              mountPath: /mnt/data
+      volumes:
+        - name: cjtest-storage
+          persistentVolumeClaim:
+            claimName: efs-pvc
